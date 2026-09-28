@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Product Manager — Outfits Here</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="stylesheet" href="styles.css">
+<style>
+.admin-wrap{max-width:1180px;margin:auto;padding:35px 20px 70px}.admin-top{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:25px}.admin-title{font:700 42px/1 Georgia,serif;letter-spacing:-.05em;margin:5px 0}.admin-actions{display:flex;gap:8px;flex-wrap:wrap}.admin-btn{border:1px solid #111;background:#111;color:#fff;border-radius:999px;padding:11px 16px;font-weight:700;font-size:12px;cursor:pointer}.admin-btn.light{background:#fff;color:#111;border-color:#ddd}.admin-grid{display:grid;grid-template-columns:390px 1fr;gap:25px}.admin-panel{border:1px solid #e5e3df;border-radius:20px;padding:20px;background:#fff}.admin-panel h2{font:700 25px Georgia,serif;margin:0 0 18px}.field{margin:0 0 13px}.field label{display:block;font-size:11px;font-weight:800;margin-bottom:6px}.field input,.field textarea,.field select{width:100%;border:1px solid #ddd;border-radius:10px;padding:10px 11px;background:#fff;outline:none}.field textarea{min-height:75px;resize:vertical}.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.checks{display:flex;gap:15px;flex-wrap:wrap;font-size:12px}.checks label{display:flex;align-items:center;gap:5px}.product-admin-row{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #eee}.product-admin-row img{width:64px;height:72px;object-fit:cover;border-radius:10px}.admin-name{font-weight:800;font-size:13px}.admin-meta{font-size:10px;color:#777;margin-top:3px}.status{font-size:9px;font-weight:900;padding:4px 7px;border-radius:999px;background:#eee}.status.live{background:#111;color:#fff}.row-actions{display:flex;gap:5px}.row-actions button{border:1px solid #ddd;background:#fff;border-radius:8px;padding:7px 9px;font-size:11px;cursor:pointer}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}.stat{background:#f7f6f3;border-radius:14px;padding:14px}.stat b{display:block;font-size:22px}.stat span{font-size:10px;color:#777}@media(max-width:800px){.admin-grid{grid-template-columns:1fr}.admin-top{align-items:flex-start;flex-direction:column}.stats{grid-template-columns:1fr 1fr}.admin-title{font-size:35px}}
+</style>
+</head>
+<body>
+<div class="announcement">✨ Outfits Here Product Manager</div>
+<header class="site-header"><a class="logo" href="index.html">Outfits <span>Here</span></a><div class="header-actions"><a class="btn btn-light" href="index.html">View Store</a></div></header>
+
+<main class="admin-wrap">
+<div class="admin-top">
+<div><span class="eyebrow">CONTENT MANAGEMENT</span><h1 class="admin-title">Products</h1></div>
+<div class="admin-actions">
+<button class="admin-btn light" id="exportBtn">Export Products</button>
+<label class="admin-btn light" for="importFile">Import JSON</label><input id="importFile" type="file" accept=".json" hidden>
+<button class="admin-btn" id="newBtn">+ Add Product</button>
+</div>
+</div>
+
+<div class="stats"><div class="stat"><b id="totalStat">0</b><span>Total products</span></div><div class="stat"><b id="liveStat">0</b><span>Published</span></div><div class="stat"><b id="clickStat">0</b><span>Tracked clicks</span></div></div>
+
+<div class="admin-grid">
+<section class="admin-panel">
+<h2 id="formTitle">Add Product</h2>
+<form id="productForm">
+<input type="hidden" id="editId">
+<div class="field"><label>Product name *</label><input id="name" required placeholder="Men’s Premium Casual Shirt"></div>
+<div class="field"><label>Product image URL *</label><input id="image" required placeholder="https://..."></div>
+<div class="field"><label>Affiliate URL *</label><input id="affiliateUrl" type="url" required placeholder="https://..."></div>
+<div class="field"><label>Short description</label><textarea id="description" placeholder="Short product description"></textarea></div>
+<div class="two"><div class="field"><label>Price ₹ *</label><input id="price" type="number" min="0" required></div><div class="field"><label>Original price ₹</label><input id="originalPrice" type="number" min="0"></div></div>
+<div class="two"><div class="field"><label>Category *</label><select id="category"><option>Men</option><option>Women</option><option>Shoes</option><option>Accessories</option><option>Watches</option><option>Bags</option></select></div><div class="field"><label>Brand</label><input id="brand" placeholder="Brand"></div></div>
+<div class="two"><div class="field"><label>Date added *</label><input id="dateAdded" type="date" required></div><div class="field"><label>Badge</label><select id="label"><option>New</option><option>Trending</option><option>Hot Find</option><option>Best Seller</option><option>Best Deal</option></select></div></div>
+<div class="field"><label>Tags (comma separated)</label><input id="tags" placeholder="shirt, men, casual, fashion"></div>
+<div class="checks"><label><input id="featured" type="checkbox"> Featured</label><label><input id="trending" type="checkbox"> Trending</label><label><input id="published" type="checkbox" checked> Published</label></div>
+<br><button class="admin-btn" type="submit" id="saveBtn">Add Product</button> <button class="admin-btn light" type="button" id="cancelBtn">Clear</button>
+</form>
+</section>
+
+<section class="admin-panel">
+<h2>Product Library</h2>
+<div class="toolbar"><input id="adminSearch" placeholder="Search products..."><select id="adminCategory"><option value="">All categories</option><option>Men</option><option>Women</option><option>Shoes</option><option>Accessories</option><option>Watches</option><option>Bags</option></select></div>
+<div id="productList"></div>
+</section>
+</div>
+</main>
+<script src="products.js"></script>
+<script>
+const KEY="oh_products_v1";
+let db=JSON.parse(localStorage.getItem(KEY)||"null") || PRODUCTS.map(p=>({...p,published:p.published!==false}));
+const $=s=>document.querySelector(s);
+const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const save=()=>{localStorage.setItem(KEY,JSON.stringify(db));render()};
+const money=n=>"₹"+Number(n||0).toLocaleString("en-IN");
+function render(){
+ const q=($("#adminSearch").value||"").toLowerCase(), cat=$("#adminCategory").value;
+ let arr=db.filter(p=>(p.name+" "+p.category+" "+p.brand+" "+(p.tags||[]).join(" ")).toLowerCase().includes(q)&&(!cat||p.category===cat));
+ $("#productList").innerHTML=arr.length?arr.map(p=>`<div class="product-admin-row"><img src="${esc(p.image)}" alt=""><div><div class="admin-name">${esc(p.name)}</div><div class="admin-meta">${money(p.price)} · ${esc(p.category)} · ${esc(p.dateAdded)}</div><span class="status ${p.published!==false?"live":""}">${p.published!==false?"PUBLISHED":"DRAFT"}</span></div><div class="row-actions"><button onclick="editProduct('${p.id}')">Edit</button><button onclick="toggleProduct('${p.id}')">${p.published!==false?"Unpublish":"Publish"}</button><button onclick="deleteProduct('${p.id}')">Delete</button></div></div>`).join(""):"<div class='empty'>No products found.</div>";
+ $("#totalStat").textContent=db.length;$("#liveStat").textContent=db.filter(p=>p.published!==false).length;
+ try{$("#clickStat").textContent=Object.values(JSON.parse(localStorage.getItem("oh_clicks")||"{}")).reduce((a,b)=>a+b,0)}catch(e){}
+}
+function clearForm(){$("#productForm").reset();$("#editId").value="";$("#dateAdded").value=new Date().toISOString().slice(0,10);$("#published").checked=true;$("#formTitle").textContent="Add Product";$("#saveBtn").textContent="Add Product"}
+function editProduct(id){const p=db.find(x=>x.id===id);if(!p)return;$("#editId").value=p.id;$("#name").value=p.name;$("#image").value=p.image;$("#affiliateUrl").value=p.affiliateUrl;$("#description").value=p.description||"";$("#price").value=p.price;$("#originalPrice").value=p.originalPrice||"";$("#category").value=p.category;$("#brand").value=p.brand||"";$("#dateAdded").value=p.dateAdded;$("#label").value=p.label||"New";$("#tags").value=(p.tags||[]).join(", ");$("#featured").checked=!!p.featured;$("#trending").checked=!!p.trending;$("#published").checked=p.published!==false;$("#formTitle").textContent="Edit Product";$("#saveBtn").textContent="Save Changes";scrollTo({top:0,behavior:"smooth"})}
+function deleteProduct(id){const p=db.find(x=>x.id===id);if(p&&confirm("Delete "+p.name+"?")){db=db.filter(x=>x.id!==id);save()}}
+function toggleProduct(id){const p=db.find(x=>x.id===id);if(p){p.published=p.published===false;save()}}
+$("#productForm").addEventListener("submit",e=>{e.preventDefault();const id=$("#editId").value||"p"+Date.now();const item={id,name:$("#name").value.trim(),image:$("#image").value.trim(),affiliateUrl:$("#affiliateUrl").value.trim(),description:$("#description").value.trim(),price:Number($("#price").value),originalPrice:Number($("#originalPrice").value)||0,category:$("#category").value,brand:$("#brand").value.trim(),dateAdded:$("#dateAdded").value,tags:$("#tags").value.split(",").map(x=>x.trim()).filter(Boolean),featured:$("#featured").checked,trending:$("#trending").checked,published:$("#published").checked,label:$("#label").value};const i=db.findIndex(p=>p.id===id);if(i>=0)db[i]=item;else db.unshift(item);save();clearForm()});
+$("#newBtn").onclick=clearForm;$("#cancelBtn").onclick=clearForm;$("#adminSearch").oninput=render;$("#adminCategory").onchange=render;
+$("#exportBtn").onclick=()=>{const blob=new Blob([JSON.stringify(db,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="outfits-here-products.json";a.click();URL.revokeObjectURL(a.href)};
+$("#importFile").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!Array.isArray(x))throw 0;db=x;save();alert("Products imported.");}catch(err){alert("Invalid product JSON.")}};r.readAsText(f)};
+clearForm();render();
+</script>
+</body></html>
