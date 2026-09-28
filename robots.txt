@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://outfits-here.example/sitemap.xml
