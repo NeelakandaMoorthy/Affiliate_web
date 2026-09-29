@@ -1,0 +1,59 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Product — Outfits Here</title><meta name="description" content="Curated fashion product from Outfits Here."><meta property="og:type" content="product"><link rel="stylesheet" href="styles.css"></head><body data-page="detail"><div class="announcement">✨ New Fashion Finds Added Daily</div><header class="site-header"><a class="logo" href="index.html">Outfits <span>Here</span></a><nav class="desktop-nav"><a href="index.html">Home</a><a href="new-arrivals.html">New Arrivals</a><a href="category.html?cat=Men">Men</a><a href="category.html?cat=Women">Women</a><a href="category.html?cat=Shoes">Shoes</a><a href="category.html?cat=Accessories">Accessories</a><a href="trending.html">Trending</a></nav><div class="header-actions"><button class="icon-btn" id="openSearch">⌕</button><button class="icon-btn menu-btn" id="menuBtn">☰</button></div></header><main id="detail"></main><footer id="footer"></footer><script src="products.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="app.js"></script><script>
+(async()=>{
+  const root=document.querySelector('#detail');
+  const id=new URLSearchParams(location.search).get('id');
+  if(!id){root.innerHTML=`<section class="page-wrap"><span class="eyebrow">PRODUCT NOT FOUND</span><h1 class="page-title">Product link is missing.</h1><a class="btn btn-dark" href="index.html">Back to Outfits Here</a></section>`;return;}
+
+  // Load the SAME published catalog independently of app.js so product links
+  // cannot race with the homepage loader.
+  let catalog=[];
+  try{
+    const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+    const {data,error}=await client.from('products').select('*').eq('published',true);
+    if(!error && Array.isArray(data)){
+      catalog=data.map(x=>({...x,originalPrice:x.original_price,affiliateUrl:x.affiliate_url,dateAdded:x.date_added,tags:x.tags||[]}));
+    }
+  }catch(e){ console.warn('Supabase product load failed',e); }
+
+  // Local fallback only when Supabase has no usable response.
+  if(!catalog.length && Array.isArray(window.PRODUCTS)){
+    catalog=window.PRODUCTS.filter(x=>x.published!==false);
+  }
+
+  const p=catalog.find(x=>String(x.id)===String(id));
+  if(!p){
+    root.innerHTML=`<section class="page-wrap"><span class="eyebrow">PRODUCT NOT FOUND</span><h1 class="page-title">This product is no longer available.</h1><p class="page-sub">The product ID in this link could not be found in the published catalog.</p><a class="btn btn-dark" href="index.html">Back to Outfits Here</a></section>`;
+    return;
+  }
+
+  const moneyLocal=n=>`₹${Number(n||0).toLocaleString('en-IN')}`;
+  const escLocal=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const disc=p.originalPrice?Math.round((1-Number(p.price)/Number(p.originalPrice))*100):0;
+  document.title=p.name+' — Outfits Here';
+  const meta=document.querySelector('meta[name="description"]'); if(meta) meta.content=p.description||'Curated fashion find from Outfits Here.';
+
+  const related=catalog.filter(x=>String(x.id)!==String(p.id)&&x.category===p.category).slice(0,4);
+  root.innerHTML=`<section class="product-detail">
+    <div class="detail-image"><img src="${escLocal(p.image)}" alt="${escLocal(p.name)}"></div>
+    <div class="detail-copy">
+      <span class="eyebrow">${escLocal(p.category)} · ${escLocal(p.brand||'')}</span>
+      <h1>${escLocal(p.name)}</h1>
+      <p>${escLocal(p.description||'')}</p>
+      <div class="price-row"><span class="price">${moneyLocal(p.price)}</span>${p.originalPrice?`<span class="original">${moneyLocal(p.originalPrice)}</span><span class="save">Save ${disc}%</span>`:''}</div>
+      <div class="features"><b>Why it’s here</b><ul><li>Curated as a fashion discovery pick.</li><li>Check the retailer for current price, size and availability.</li><li>Shop directly from the retailer using the button below.</li></ul></div>
+      <button class="shop-btn" id="detailShop">🛍️ View Product</button>
+      <p class="disclosure">Affiliate disclosure: this link may earn Outfits Here a commission at no additional cost to you. Price and availability may change on the retailer’s website.</p>
+    </div>
+  </section>
+  <section class="section soft"><div class="section-head"><h2>Related Finds</h2></div><div class="product-grid">${related.map(x=>`<article class="product-card"><a class="product-image" href="product.html?id=${encodeURIComponent(x.id)}"><img loading="lazy" src="${escLocal(x.image)}" alt="${escLocal(x.name)}"><span class="badge">${escLocal(x.label||'Find')}</span></a><div class="product-info"><span class="product-category">${escLocal(x.category)} · ${escLocal(x.brand||'')}</span><a class="product-name" href="product.html?id=${encodeURIComponent(x.id)}">${escLocal(x.name)}</a><div class="product-desc">${escLocal(x.description||'')}</div><div class="price-row"><span class="price">${moneyLocal(x.price)}</span></div></div></article>`).join('')}</div></section>`;
+
+  document.querySelector('#detailShop').addEventListener('click',async()=>{
+    try{
+      const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+      await client.from('affiliate_clicks').insert({product_id:String(p.id),product_name:p.name,category:p.category,page_url:location.href});
+    }catch(e){}
+    if(p.affiliateUrl) window.open(p.affiliateUrl,'_blank','noopener');
+    else if(p.affiliate_url) window.open(p.affiliate_url,'_blank','noopener');
+  });
+})();
+</script></body></html>
